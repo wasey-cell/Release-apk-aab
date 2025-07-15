@@ -1,0 +1,48 @@
+name: Build Signed APK
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Step 1: Decode Keystore from base64
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android.jks
+
+      # Step 2: Build Release APK using Buildozer
+      - name: Build Release APK
+        uses: digreatbrian/buildozer-action@v2
+        with:
+          python-version: 3.11
+          buildozer-cmd: buildozer -v android release
+
+      # Step 3: Sign the APK manually with .jks keystore
+      - name: Sign the APK manually
+        run: |
+          APK_PATH=$(find ./bin -name "*-release-unsigned.apk" | head -n 1)
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore android.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            "$APK_PATH" "${{ secrets.KEY_ALIAS }}"
+
+      # Step 4: Rename the signed APK
+      - name: Rename the signed APK
+        run: |
+          APK_PATH=$(find ./bin -name "*-release-unsigned.apk" | head -n 1)
+          NEW_APK_PATH="${APK_PATH/-unsigned/-signed}"
+          mv "$APK_PATH" "$NEW_APK_PATH"
+
+      # Step 5: Upload Signed APK Artifact
+      - name: Upload Signed APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-release-apk
+          path: ./bin/*-release-signed.apk
