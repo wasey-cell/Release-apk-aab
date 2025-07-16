@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      # Step 0: Checkout repository
       - uses: actions/checkout@v4
 
       # Step 1: Decode Keystore
@@ -16,32 +17,21 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android.jks
 
-      # Step 2: Build Release APK
+      # Step 2: Build Release APK using Buildozer
       - name: Build Release APK
         uses: digreatbrian/buildozer-action@v2
         with:
           python-version: 3.11
           buildozer-cmd: buildozer -v android release
 
-      # Step 3: Sign with jarsigner (v1)
-      - name: Sign APK with jarsigner
-        run: |
-          APK_PATH=$(find . -name "*-release-unsigned.apk" | head -n 1)
-          echo "Found APK at $APK_PATH"
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore android.jks \
-            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ secrets.KEY_PASSWORD }}" \
-            "$APK_PATH" "${{ secrets.KEY_ALIAS }}"
-
-      # Step 4: Install zipalign and apksigner
+      # Step 3: Install zipalign and apksigner
       - name: Install zipalign and apksigner
         run: |
           sudo apt-get update
           sudo apt-get install -y zipalign apksigner
 
-      # Step 5: Zipalign + apksigner (v1 + v2)
-      - name: Zipalign and sign with apksigner
+      # Step 4: Zipalign and sign with apksigner (v1–v3 only)
+      - name: Zipalign and sign with apksigner (v1–v3 only)
         run: |
           APK_PATH=$(find . -name "*-release-unsigned.apk" | head -n 1)
           ZIPALIGNED_APK="${APK_PATH/-unsigned/-aligned.apk}"
@@ -50,19 +40,23 @@ jobs:
           echo "Zipaligning $APK_PATH → $ZIPALIGNED_APK"
           zipalign -v 4 "$APK_PATH" "$ZIPALIGNED_APK"
 
-          echo "Signing $ZIPALIGNED_APK → $FINAL_APK"
+          echo "Signing $ZIPALIGNED_APK → $FINAL_APK with v1–v3 only"
           apksigner sign \
             --ks android.jks \
             --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
             --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
             --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+            --v1-signing-enabled true \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            --v4-signing-enabled false \
             --out "$FINAL_APK" \
             "$ZIPALIGNED_APK"
 
           echo "Signed APK path: $FINAL_APK"
           echo "APK_PATH=$FINAL_APK" >> "$GITHUB_ENV"
 
-      # Step 6: Upload Signed APK
+      # Step 5: Upload Signed APK Artifact
       - name: Upload Signed APK Artifact
         uses: actions/upload-artifact@v4
         with:
