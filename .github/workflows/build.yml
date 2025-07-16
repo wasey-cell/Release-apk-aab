@@ -23,7 +23,7 @@ jobs:
           python-version: 3.11
           buildozer-cmd: buildozer -v android release
 
-      # Step 3: Sign the APK manually with .jks keystore
+      # Step 3: Sign with jarsigner (v1 scheme)
       - name: Sign the APK manually
         run: |
           APK_PATH=$(find ./bin -name "*-release-unsigned.apk" | head -n 1)
@@ -33,14 +33,32 @@ jobs:
             -keypass "${{ secrets.KEY_PASSWORD }}" \
             "$APK_PATH" "${{ secrets.KEY_ALIAS }}"
 
-      # Step 4: Rename the signed APK
-      - name: Rename the signed APK
+      # Step 4: Install zipalign and apksigner
+      - name: Install zipalign and apksigner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zipalign apksigner
+
+      # Step 5: Zipalign and sign with apksigner (v1 + v2)
+      - name: Zipalign and apksigner sign
         run: |
           APK_PATH=$(find ./bin -name "*-release-unsigned.apk" | head -n 1)
-          NEW_APK_PATH="${APK_PATH/-unsigned/-signed}"
-          mv "$APK_PATH" "$NEW_APK_PATH"
+          ZIPALIGNED_APK="${APK_PATH/-unsigned/-aligned.apk}"
+          FINAL_APK="${APK_PATH/-unsigned/-signed.apk}"
 
-      # Step 5: Upload Signed APK Artifact
+          # Zipalign the APK
+          zipalign -v 4 "$APK_PATH" "$ZIPALIGNED_APK"
+
+          # Sign with apksigner (v1 + v2)
+          apksigner sign \
+            --ks android.jks \
+            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
+            --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
+            --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+            --out "$FINAL_APK" \
+            "$ZIPALIGNED_APK"
+
+      # Step 6: Upload Signed APK Artifact
       - name: Upload Signed APK Artifact
         uses: actions/upload-artifact@v4
         with:
