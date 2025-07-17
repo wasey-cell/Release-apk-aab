@@ -34,7 +34,7 @@ source.include_exts = py,png,jpg,kv,atlas,mp3,ttf
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1.1
+version = 0.1
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -42,7 +42,7 @@ version = 0.1.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,kivymd==1.2.0, materialyoucolor, asynckivy, asyncgui,pillow,pyjnius
+requirements = python3,kivy,kivymd==1.2.0, materialyoucolor, asynckivy, asyncgui,pillow
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
