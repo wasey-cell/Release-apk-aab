@@ -6,10 +6,10 @@
 [app]
 
 # (str) Title of your application
-title =add
+title =Adap
 
 # (str) Package name
-package.name = rewad
+package.name = adtest
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.wasey
@@ -18,7 +18,7 @@ package.domain = org.wasey
 source.dir = .
 
 # (list) Source files to include (leave empty to include all the files)
-#source.include_exts = py,png,jpg,kv,atlas,mp3
+#source.include_exts = py,png,jpg,kv,atlas,mp3,ttf
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = img/*.png
@@ -42,7 +42,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,kivymd==1.2.0, materialyoucolor, asynckivy, asyncgui,pillow,kivmob,jnius
+requirements = python3,kivy,kivymd==1.2.0, materialyoucolor, asynckivy, asyncgui,pillow,pyjnius,android
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
@@ -59,7 +59,7 @@ orientation = portrait
 # (list) List of services to declare
 # This is currently only relevant to Android services.
 # Each service consists of a name (a valid Java class name, with the first letter capitalized)
-android.meta_data = com.google.android.gms.ads.APPLICATION_ID=ca-app-pub-3940256099942544~3347511713
+android.manifest.application = <meta-data android:name="com.startapp.sdk.134758900" android:value="206367052"/>
 # followed by a colon, followed by the name of the Python script (.py file) that should be
 # launched. This is optionally followed by ":foreground" for foreground services or
 # ":foreground:sticky" for sticky foreground services. The default is a background service.
@@ -102,12 +102,10 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions.html for all the supported syntaxes and properties)
-android.permissions = INTERNET,ACCESS_NETWORK_STATE
+android.permissions = INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
-android.gradle_dependencies = com.google.firebase:firebase-ads:21.4.0
-
-android.enable_androidx = True
+android.gradle_dependencies = com.startapp:inapp-sdk:4.10.5
 # (int) Target Android API, should be as high as possible.
 #android.api = 31
 
